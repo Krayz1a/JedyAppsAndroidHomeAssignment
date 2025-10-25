@@ -38,13 +38,14 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 
-
+// Ktor HTTP client with JSON serialization that ignores unknown fields
 val client = HttpClient(CIO) {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
     }
 }
 
+//Single Movie Class
 @Serializable
 data class Movie(
     val Title: String,
@@ -52,12 +53,16 @@ data class Movie(
     val Type: String? = null,
     val imdbID: String
 )
+
+//Response class for the OMDb API response
 @Serializable
 data class APIResponse(
     val Search: List<Movie>? = null,
     val Response: String? = null,
     val Error: String? = null
 )
+
+//Function to get movies from the OMDb API, suspendable for coroutines
 suspend fun getMovies(title: String): List<Movie> {
     val response: APIResponse = client.get("https://www.omdbapi.com/") {
         parameter("apikey", "3e836853")
@@ -66,6 +71,8 @@ suspend fun getMovies(title: String): List<Movie> {
     }.body()
     return if (response.Response == "True") response.Search.orEmpty() else emptyList()
 }
+
+//Function to get a single movie from the OMDb API, suspendable for coroutines
 suspend fun getMovie(id: String): Movie?{
     return client.get("https://www.omdbapi.com/") {
         parameter("apikey", "3e836853")
@@ -73,6 +80,7 @@ suspend fun getMovie(id: String): Movie?{
     }.body()
 }
 
+//Main Activity, sets up the navigation and startup screen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +102,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
+//Main Screen Composable, contains the search bar and the list of movies
 @Composable
 fun MainScreen(navigator: NavController) {
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
@@ -217,6 +226,7 @@ fun MainScreen(navigator: NavController) {
     }
 }
 
+//Favorites Screen Composable, displays a list of favorite movies
 @Composable
 fun FavoritesScreen(navigator: NavController) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -261,6 +271,7 @@ fun FavoritesScreen(navigator: NavController) {
     }
 }
 
+//Detail Screen Composable, displays the details of a single movie
 @Composable
 fun DetailScreen(ID: String, navigator: NavController) {
     val context = androidx.compose.ui.platform.LocalContext.current
